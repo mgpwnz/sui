@@ -9,13 +9,13 @@ if exists curl; then
 else
   sudo apt update && sudo apt install curl -y < "/dev/null"
 fi
+
+sleep 1 && curl -s https://raw.githubusercontent.com/cryptology-nodes/main/main/logo.sh |  bash && sleep 2
+
 bash_profile=$HOME/.bash_profile
 if [ -f "$bash_profile" ]; then
     . $HOME/.bash_profile
 fi
-sleep 1 && curl -s https://raw.githubusercontent.com/cryptology-nodes/main/main/logo.sh | bash && sleep 2
-echo -e 'Setting up swapfile...\n'
-curl -s https://api.nodes.guru/swap8.sh | bash
 
 echo -e '\n\e[42mInstall software\e[0m\n' && sleep 1
 apt-get update && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y --no-install-recommends tzdata git ca-certificates curl build-essential libssl-dev pkg-config libclang-dev cmake jq
@@ -23,7 +23,7 @@ echo -e '\n\e[42mInstall Rust\e[0m\n' && sleep 1
 sudo curl https://sh.rustup.rs -sSf | sh -s -- -y
 source $HOME/.cargo/env
 
-rm -rf /var/sui/db /var/sui/genesis.blob $HOME/sui
+rm -rf /var/sui/db /var/sui/genesis.blob
 mkdir -p /var/sui/db
 cd $HOME
 git clone https://github.com/MystenLabs/sui.git
@@ -35,9 +35,8 @@ cp crates/sui-config/data/fullnode-template.yaml /var/sui/fullnode.yaml
 #curl -fLJO https://github.com/MystenLabs/sui-genesis/raw/main/devnet/genesis.blob
 wget -O /var/sui/genesis.blob https://github.com/MystenLabs/sui-genesis/raw/main/devnet/genesis.blob
 sed -i.bak "s/db-path:.*/db-path: \"\/var\/sui\/db\"/ ; s/genesis-file-location:.*/genesis-file-location: \"\/var\/sui\/genesis.blob\"/" /var/sui/fullnode.yaml
-cargo build --release
-mv ~/sui/target/release/sui-node /usr/local/bin/ || exit
-mv ~/sui/target/release/sui /usr/local/bin/ || exit
+cargo build --release -p sui-node
+mv ~/sui/target/release/sui-node /usr/local/bin/
 sed -i.bak 's/127.0.0.1/0.0.0.0/' /var/sui/fullnode.yaml
 
 echo "[Unit]
